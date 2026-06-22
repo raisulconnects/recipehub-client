@@ -31,22 +31,19 @@ import {
   BookOpen,
   Home,
 } from "lucide-react";
+import { useSession, signOut } from "@/lib/auth-client";
 
 const publicLinks = [
   { label: "Home", href: "/", icon: Home },
   { label: "Browse Recipes", href: "/browse", icon: BookOpen },
 ];
 
-// TODO: Replace with your Better Auth session hook
-const useMockUser = () => ({
-  user: null, // swap with real session: { name, email, image, isPremium, role }
-  isLoading: false,
-});
-
 export default function Navbar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-  const { user, isLoading } = useMockUser();
+  const { data: session, isPending } = useSession();
+  const user = session?.user || null;
+  const isLoading = isPending;
   const [scrolled, setScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -302,7 +299,7 @@ function AuthenticatedMenu({ user }) {
 
         <DropdownMenuItem
           className="cursor-pointer text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-2"
-          onClick={() => console.log("logout")} // TODO: wire Better Auth logout
+          onClick={() => signOut()}
         >
           <LogOut className="w-4 h-4" />
           Logout
@@ -401,7 +398,7 @@ function MobileMenu({ user, isActive, publicLinks }) {
               </Link>
             </SheetClose>
             <button
-              onClick={() => console.log("logout")} // TODO: wire Better Auth logout
+              onClick={() => signOut()}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
             >
               <LogOut className="w-4 h-4" /> Logout

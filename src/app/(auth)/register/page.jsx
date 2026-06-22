@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   FaUser,
@@ -16,10 +17,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { signUp } from "@/lib/auth-client";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [image, setImage] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const passwordChecks = useMemo(() => {
     return {
@@ -29,9 +37,22 @@ export default function RegisterPage() {
     };
   }, [password]);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    // TODO: Better Auth register here
+    setError("");
+    setLoading(true);
+    const { error: signUpError } = await signUp.email({
+      name,
+      email,
+      password,
+      image: image || undefined,
+    });
+    setLoading(false);
+    if (signUpError) {
+      setError(signUpError.message || "Registration failed");
+      return;
+    }
+    router.push("/");
   };
 
   const handleGoogleLogin = () => {
@@ -87,6 +108,12 @@ export default function RegisterPage() {
               </div>
 
               <form onSubmit={handleRegister} className="space-y-5">
+                {error && (
+                  <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-400">
+                    {error}
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
                   <div className="relative">
@@ -95,6 +122,9 @@ export default function RegisterPage() {
                       id="name"
                       type="text"
                       placeholder="Your full name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      required
                       className="h-11 rounded-xl border-white/20 bg-white/70 pl-10 dark:border-white/10 dark:bg-white/5"
                     />
                   </div>
@@ -108,6 +138,9 @@ export default function RegisterPage() {
                       id="email"
                       type="email"
                       placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
                       className="h-11 rounded-xl border-white/20 bg-white/70 pl-10 dark:border-white/10 dark:bg-white/5"
                     />
                   </div>
@@ -121,6 +154,8 @@ export default function RegisterPage() {
                       id="image"
                       type="text"
                       placeholder="https://example.com/profile.png"
+                      value={image}
+                      onChange={(e) => setImage(e.target.value)}
                       className="h-11 rounded-xl border-white/20 bg-white/70 pl-10 dark:border-white/10 dark:bg-white/5"
                     />
                   </div>
@@ -136,6 +171,7 @@ export default function RegisterPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Create a password"
+                      required
                       className="h-11 rounded-xl border-white/20 bg-white/70 pl-10 pr-11 dark:border-white/10 dark:bg-white/5"
                     />
                     <button
@@ -175,9 +211,10 @@ export default function RegisterPage() {
 
                 <Button
                   type="submit"
-                  className="h-11 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600"
+                  disabled={loading}
+                  className="h-11 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50"
                 >
-                  Register
+                  {loading ? "Creating account…" : "Register"}
                 </Button>
 
                 <div className="relative">

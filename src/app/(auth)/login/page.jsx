@@ -1,19 +1,34 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FaRegEnvelope, FaLock, FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { signIn } from "@/lib/auth-client";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // TODO: Better Auth credential login here
+    setError("");
+    setLoading(true);
+    const { error: signInError } = await signIn.email({ email, password });
+    setLoading(false);
+    if (signInError) {
+      setError(signInError.message || "Invalid email or password");
+      return;
+    }
+    router.push("/");
   };
 
   const handleGoogleLogin = () => {
@@ -76,6 +91,12 @@ export default function LoginPage() {
               </div>
 
               <form onSubmit={handleLogin} className="space-y-5">
+                {error && (
+                  <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-400">
+                    {error}
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <div className="relative">
@@ -84,6 +105,9 @@ export default function LoginPage() {
                       id="email"
                       type="email"
                       placeholder="you@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
                       className="h-11 rounded-xl border-white/20 bg-white/70 pl-10 dark:border-white/10 dark:bg-white/5"
                     />
                   </div>
@@ -97,6 +121,9 @@ export default function LoginPage() {
                       id="password"
                       type={showPassword ? "text" : "password"}
                       placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
                       className="h-11 rounded-xl border-white/20 bg-white/70 pl-10 pr-11 dark:border-white/10 dark:bg-white/5"
                     />
                     <button
@@ -115,9 +142,10 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="h-11 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600"
+                  disabled={loading}
+                  className="h-11 w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50"
                 >
-                  Login
+                  {loading ? "Signing in…" : "Login"}
                 </Button>
 
                 <div className="relative">
