@@ -215,8 +215,6 @@ export default function RegisterPage() {
   );
 }
 
-// console.log("Register page loaded");
-
 function PasswordRule({ label, valid }) {
   return (
     <div className="flex items-center gap-2">
