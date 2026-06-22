@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { signUp } from "@/lib/auth-client";
+import { signUp, signIn } from "@/lib/auth-client";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -27,6 +27,7 @@ export default function RegisterPage() {
   const [image, setImage] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
 
   const passwordChecks = useMemo(() => {
@@ -55,8 +56,9 @@ export default function RegisterPage() {
     router.push("/");
   };
 
-  const handleGoogleLogin = () => {
-    // TODO: Better Auth Google login here
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    await signIn.social({ provider: "google", callbackURL: "/" });
   };
 
   return (
@@ -228,10 +230,17 @@ export default function RegisterPage() {
                   type="button"
                   variant="outline"
                   onClick={handleGoogleLogin}
-                  className="h-11 w-full rounded-xl border-white/20 bg-white/70 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+                  disabled={googleLoading}
+                  className="h-11 w-full rounded-xl border-white/20 bg-white/70 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10 disabled:opacity-50"
                 >
-                  <FaGoogle className="mr-2 h-4 w-4" />
-                  Continue with Google
+                  {googleLoading ? (
+                    "Redirecting…"
+                  ) : (
+                    <>
+                      <FaGoogle className="mr-2 h-4 w-4" />
+                      Continue with Google
+                    </>
+                  )}
                 </Button>
               </form>
 
