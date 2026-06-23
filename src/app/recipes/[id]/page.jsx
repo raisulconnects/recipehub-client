@@ -47,14 +47,14 @@ export default function RecipeDetailsPage() {
   if (!recipe) {
     return (
       <section className="min-h-screen pt-28 pb-16">
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
+        <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 text-center sm:px-6">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-white">
             Recipe not found
           </h1>
-          <p className="mt-3 text-zinc-600 dark:text-zinc-300">
+          <p className="text-zinc-600 dark:text-zinc-300">
             The recipe you are looking for does not exist.
           </p>
-          <Button asChild className="mt-6 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
+          <Button asChild className="mx-auto w-fit rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
             <Link href="/browse">Back to Browse</Link>
           </Button>
         </div>
@@ -97,11 +97,11 @@ export default function RecipeDetailsPage() {
       <div className="absolute top-10 left-0 -z-10 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl" />
       <div className="absolute bottom-0 right-0 -z-10 h-72 w-72 rounded-full bg-teal-400/10 blur-3xl" />
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="mx-auto flex max-w-7xl flex-col gap-10 px-4 sm:px-6">
         <Button
           asChild
           variant="outline"
-          className="mb-6 rounded-xl border-white/20 bg-white/70 dark:border-white/10 dark:bg-white/5"
+          className="w-fit rounded-xl border-white/20 bg-white/70 dark:border-white/10 dark:bg-white/5"
         >
           <Link href="/browse">
             <FaArrowLeft className="mr-2" />
@@ -109,10 +109,10 @@ export default function RecipeDetailsPage() {
           </Link>
         </Button>
 
-        <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
           {/* Left content */}
-          <div className="space-y-8">
-            <div className="overflow-hidden rounded-[2rem] border border-white/20 bg-white/60 shadow-[0_20px_80px_rgba(16,185,129,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
+          <div className="flex flex-col gap-10">
+            <div className="overflow-hidden rounded-[2rem] border border-white/20 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
               <div className="relative h-[280px] sm:h-[380px]">
                 <Image
                   src={recipe.recipeImage}
@@ -124,8 +124,8 @@ export default function RecipeDetailsPage() {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/20 bg-white/60 p-6 shadow-[0_20px_80px_rgba(16,185,129,0.06)] backdrop-blur-xl dark:border-white/10 dark:bg-white/5 sm:p-8">
-              <div className="mb-4 flex items-center gap-2">
+            <div className="flex flex-col gap-6 rounded-[2rem] border border-white/20 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 sm:p-8">
+              <div className="flex items-center gap-2">
                 <FaUtensils className="text-emerald-500" />
                 <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white">
                   Ingredients
@@ -136,7 +136,7 @@ export default function RecipeDetailsPage() {
                 {recipe.ingredients.map((ingredient, index) => (
                   <div
                     key={index}
-                    className="rounded-2xl border border-white/20 bg-white/60 px-4 py-3 text-sm text-zinc-700 backdrop-blur-md dark:border-white/10 dark:bg-white/5 dark:text-zinc-200"
+                    className="rounded-2xl border border-white/20 bg-white/70 px-4 py-3 text-sm text-zinc-700 backdrop-blur-md dark:border-white/10 dark:bg-white/5 dark:text-zinc-200"
                   >
                     {ingredient}
                   </div>
@@ -144,29 +144,29 @@ export default function RecipeDetailsPage() {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/20 bg-white/60 p-6 shadow-[0_20px_80px_rgba(16,185,129,0.06)] backdrop-blur-xl dark:border-white/10 dark:bg-white/5 sm:p-8">
+            <div className="flex flex-col gap-6 rounded-[2rem] border border-white/20 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 sm:p-8">
               <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white">
                 Instructions
               </h2>
 
-              <div className="mt-4 rounded-3xl border border-white/20 bg-white/60 p-5 leading-7 text-zinc-700 backdrop-blur-md dark:border-white/10 dark:bg-white/5 dark:text-zinc-200">
+              <div className="rounded-3xl border border-white/20 bg-white/70 p-5 leading-7 text-zinc-700 backdrop-blur-md dark:border-white/10 dark:bg-white/5 dark:text-zinc-200">
                 {recipe.instructions}
               </div>
             </div>
           </div>
 
           {/* Right summary */}
-          <div className="space-y-6">
-            <div className="rounded-[2rem] border border-white/20 bg-white/60 p-6 shadow-[0_20px_80px_rgba(16,185,129,0.08)] backdrop-blur-xl dark:border-white/10 dark:bg-white/5 lg:sticky lg:top-24">
+          <div className="lg:sticky lg:top-24">
+            <div className="flex flex-col gap-6 rounded-[2rem] border border-white/20 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 sm:p-8">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
                 Full Recipe Details
               </p>
 
-              <h1 className="mt-3 text-3xl font-bold leading-tight text-zinc-900 sm:text-4xl dark:text-white">
+              <h1 className="text-3xl font-bold leading-tight text-zinc-900 sm:text-4xl dark:text-white">
                 {recipe.recipeName}
               </h1>
 
-              <div className="mt-5 flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                 <span className="rounded-full border border-white/20 bg-white/70 px-3 py-1 text-xs font-medium text-zinc-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200">
                   {recipe.category}
                 </span>
@@ -178,43 +178,43 @@ export default function RecipeDetailsPage() {
                 </span>
               </div>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl border border-white/20 bg-white/60 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border border-white/20 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/5">
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">Preparation</p>
-                  <div className="mt-1 flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-white">
+                  <div className="flex items-center gap-2 pt-1 text-sm font-semibold text-zinc-900 dark:text-white">
                     <FaClock className="text-emerald-500" />
                     {recipe.preparationTime} min
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-white/20 bg-white/60 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+                <div className="rounded-2xl border border-white/20 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/5">
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">Likes</p>
-                  <div className="mt-1 flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-white">
+                  <div className="flex items-center gap-2 pt-1 text-sm font-semibold text-zinc-900 dark:text-white">
                     <FaStar className="text-amber-500" />
                     {likesCount} likes
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-white/20 bg-white/60 px-4 py-3 dark:border-white/10 dark:bg-white/5 sm:col-span-2">
+                <div className="rounded-2xl border border-white/20 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/5 sm:col-span-2">
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">Author</p>
-                  <div className="mt-1 flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-white">
+                  <div className="flex items-center gap-2 pt-1 text-sm font-semibold text-zinc-900 dark:text-white">
                     <FaUser className="text-teal-500" />
                     {recipe.authorName}
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 rounded-3xl border border-emerald-200/40 bg-emerald-50/70 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+              <div className="rounded-3xl border border-emerald-200/40 bg-emerald-50/70 p-4 dark:border-emerald-900/40 dark:bg-emerald-950/20">
                 <div className="flex items-start gap-3">
                   <FaFire className="mt-1 text-emerald-500" />
                   <p className="text-sm leading-6 text-zinc-700 dark:text-zinc-300">
-                    Purchasing this recipe supports the creator directly. It’s more
+                    Purchasing this recipe supports the creator directly. It's more
                     like backing the creator than unlocking hidden content.
                   </p>
                 </div>
               </div>
 
-              <div className="mt-6 grid gap-3">
+              <div className="flex flex-col gap-3">
                 <Button
                   onClick={handleLike}
                   className={`h-11 rounded-xl ${
@@ -260,7 +260,7 @@ export default function RecipeDetailsPage() {
                       <DialogTitle>Report this recipe</DialogTitle>
                     </DialogHeader>
 
-                    <div className="space-y-4">
+                    <div className="flex flex-col gap-4">
                       <div>
                         <p className="mb-2 text-sm font-medium text-zinc-800 dark:text-zinc-200">
                           Select a reason

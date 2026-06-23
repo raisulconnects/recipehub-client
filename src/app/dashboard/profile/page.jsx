@@ -111,7 +111,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-8 pt-8">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-10 pt-8">
           {error && (
             <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-400">
               {error}
@@ -125,21 +125,23 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <div className="flex flex-col gap-2.5">
-            <Label>Name</Label>
-            <Input
-              defaultValue={user.name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="flex flex-col gap-2.5">
+              <Label>Name</Label>
+              <Input
+                defaultValue={user.name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
 
-          <div className="flex flex-col gap-2.5">
-            <Label>Image URL</Label>
-            <Input
-              defaultValue={user.image || ""}
-              onChange={(e) => setImage(e.target.value)}
-              placeholder="https://example.com/avatar.jpg"
-            />
+            <div className="flex flex-col gap-2.5">
+              <Label>Image URL</Label>
+              <Input
+                defaultValue={user.image || ""}
+                onChange={(e) => setImage(e.target.value)}
+                placeholder="https://example.com/avatar.jpg"
+              />
+            </div>
           </div>
 
           <Button
