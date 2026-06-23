@@ -95,7 +95,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-8 grid gap-5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-8 pt-8">
           {error && (
             <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-400">
               {error}
@@ -109,7 +109,7 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2.5">
             <Label>Name</Label>
             <Input
               defaultValue={user.name}
@@ -117,7 +117,7 @@ export default function ProfilePage() {
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2.5">
             <Label>Image URL</Label>
             <Input
               defaultValue={user.image || ""}
@@ -129,7 +129,7 @@ export default function ProfilePage() {
           <Button
             type="submit"
             disabled={saving}
-            className="w-fit rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50"
+            className="w-fit rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-8 py-3 text-base font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-emerald-500/40 disabled:opacity-50"
           >
             {saving ? (
               <>
