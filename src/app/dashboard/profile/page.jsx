@@ -70,7 +70,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-10">
       <SectionHeader
         title="Profile"
         description="Update your personal details and profile image."

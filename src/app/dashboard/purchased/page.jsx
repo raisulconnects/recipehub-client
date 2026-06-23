@@ -14,7 +14,7 @@ const purchasedRecipes = [
 
 export default function PurchasedRecipesPage() {
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-10">
       <SectionHeader
         title="Purchased Recipes"
         description="Recipes you supported so you can revisit them anytime."

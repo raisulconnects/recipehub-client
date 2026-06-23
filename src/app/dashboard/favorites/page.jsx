@@ -18,7 +18,7 @@ const favorites = [
 
 export default function FavoritesPage() {
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-10">
       <SectionHeader
         title="My Favorites"
         description="Quick access to the recipes you saved for later."

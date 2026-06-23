@@ -43,7 +43,7 @@ export default function DashboardOverviewPage() {
   const userName = user?.name?.split(" ")[0] || "there";
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-10">
       <SectionHeader
         title={`Welcome back, ${userName}`}
         description="Track your recipes, favorites, creator support, and profile status from one place."

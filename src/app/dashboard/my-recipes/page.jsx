@@ -24,7 +24,7 @@ const myRecipes = [
 
 export default function MyRecipesPage() {
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-10">
       <SectionHeader
         title="My Recipes"
         description="Manage your published recipes, edit details, or remove old ones."

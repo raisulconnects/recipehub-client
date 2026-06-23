@@ -25,7 +25,7 @@ export default function AddRecipePage() {
   const limitReached = !isPremium && currentRecipeCount >= 2;
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col gap-10">
       <SectionHeader
         title="Add Recipe"
         description="Publish a new recipe with all the details food lovers need."
