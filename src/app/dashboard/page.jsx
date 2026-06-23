@@ -97,32 +97,57 @@ export default function DashboardOverviewPage() {
           </div>
         </div>
 
-        <div className="rounded-[2rem] border border-white/20 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-amber-100 p-3 dark:bg-amber-950/30">
-              <Crown className="h-5 w-5 text-amber-500" />
+        {!isPremium ? (
+          <div className="rounded-[2rem] border border-white/20 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
+            <div className="flex items-center gap-3">
+              <div className="rounded-2xl bg-amber-100 p-3 dark:bg-amber-950/30">
+                <Crown className="h-5 w-5 text-amber-500" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
+                  Premium Access
+                </h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                  Unlock unlimited recipe uploads.
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
-                Premium Access
-              </h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                Unlock unlimited recipe uploads.
+
+            <div className="mt-5 rounded-3xl border border-dashed border-emerald-300 bg-emerald-50/70 p-5 dark:border-emerald-900 dark:bg-emerald-950/20">
+              <p className="text-sm leading-6 text-zinc-700 dark:text-zinc-300">
+                Free users can add up to 2 recipes. Upgrade when you hit the
+                limit to keep publishing without restrictions.
+              </p>
+
+              <button className="mt-4 inline-flex rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-sm font-semibold text-white transition hover:from-emerald-600 hover:to-teal-600">
+                Become Premium
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-[2rem] border border-white/20 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
+            <div className="flex items-center gap-3">
+              <div className="rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 p-3 shadow-md shadow-amber-400/30">
+                <Crown className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
+                  You're Premium
+                </h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                  All features unlocked.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-3xl border border-emerald-200 bg-emerald-50/70 p-5 dark:border-emerald-800 dark:bg-emerald-950/20">
+              <p className="text-sm leading-6 text-zinc-700 dark:text-zinc-300">
+                You have unlimited recipe uploads, priority support, and all
+                premium features.
               </p>
             </div>
           </div>
-
-          <div className="mt-5 rounded-3xl border border-dashed border-emerald-300 bg-emerald-50/70 p-5 dark:border-emerald-900 dark:bg-emerald-950/20">
-            <p className="text-sm leading-6 text-zinc-700 dark:text-zinc-300">
-              Free users can add up to 2 recipes. Upgrade when you hit the limit
-              to keep publishing without restrictions.
-            </p>
-
-            <button className="mt-4 inline-flex rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-sm font-semibold text-white transition hover:from-emerald-600 hover:to-teal-600">
-              Become Premium
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

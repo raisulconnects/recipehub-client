@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "@/lib/auth-client";
-import { Loader2 } from "lucide-react";
+import { Crown, Loader2 } from "lucide-react";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,21 @@ export default function AddRecipePage() {
         description="Publish a new recipe with all the details food lovers need."
       />
 
-      {limitReached && (
+      {isPremium ? (
+        <div className="flex items-center gap-3 rounded-[1.5rem] border border-emerald-300 bg-emerald-50 p-5 dark:border-emerald-800 dark:bg-emerald-950/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-md shadow-amber-400/30">
+            <Crown className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+              You're a Premium member
+            </p>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400">
+              Enjoy unlimited recipe uploads with no restrictions.
+            </p>
+          </div>
+        </div>
+      ) : limitReached && (
         <div className="rounded-[1.5rem] border border-amber-300 bg-amber-50 p-5 dark:border-amber-800 dark:bg-amber-950/20">
           <p className="text-sm text-amber-800 dark:text-amber-300">
             You have reached the 2 recipe limit for free users. Upgrade to

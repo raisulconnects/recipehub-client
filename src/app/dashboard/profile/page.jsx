@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useSession, updateUser } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Crown, Loader2 } from "lucide-react";
 
 export default function ProfilePage() {
   const { data: session, isPending, refetch } = useSession();
@@ -78,17 +79,32 @@ export default function ProfilePage() {
 
       <div className="rounded-[2rem] border border-white/20 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 sm:p-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-center">
-          <Avatar className="h-24 w-24 border border-white/20 dark:border-white/10">
-            <AvatarImage src={user.image} alt={user.name} />
-            <AvatarFallback className="bg-gradient-to-br from-emerald-400 to-teal-500 text-lg text-white">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            <Avatar className="h-24 w-24 border border-white/20 dark:border-white/10">
+              <AvatarImage src={user.image} alt={user.name} />
+              <AvatarFallback className="bg-gradient-to-br from-emerald-400 to-teal-500 text-lg text-white">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            {user.isPremium && (
+              <div className="absolute -top-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-amber-400 shadow-md shadow-amber-400/40">
+                <Crown className="h-3.5 w-3.5 text-white" />
+              </div>
+            )}
+          </div>
 
-          <div>
-            <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
-              {user.name}
-            </h2>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
+                {user.name}
+              </h2>
+              {user.isPremium && (
+                <Badge className="rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-white shadow-sm">
+                  <Crown className="mr-1 h-3 w-3" />
+                  Premium
+                </Badge>
+              )}
+            </div>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
               {user.email}
             </p>
