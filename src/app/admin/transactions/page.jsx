@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import SectionHeader from "@/components/dashboard/SectionHeader";
@@ -13,25 +14,20 @@ import {
   TableCell,
 } from "@/components/ui/table";
 
-const transactions = [
-  {
-    id: "txn_001",
-    user: "sophia@example.com",
-    amount: "$4.99",
-    date: "2026-06-21",
-    status: "success",
-  },
-  {
-    id: "txn_002",
-    user: "ayaan@example.com",
-    amount: "$9.99",
-    date: "2026-06-22",
-    status: "success",
-  },
-];
-
 export default function AdminTransactionsPage() {
   const { isPending } = useSession();
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/payments/transactions")
+      .then((r) => r.json())
+      .then((data) => {
+        setTransactions(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
 
   if (isPending) {
     return (
@@ -48,37 +44,49 @@ export default function AdminTransactionsPage() {
         description="Track support payments and premium purchases across the platform."
       />
 
-      <div className="overflow-hidden rounded-[2rem] border border-white/20 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-white/10">
-              <TableHead>User</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Transaction ID</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {transactions.map((txn) => (
-              <TableRow key={txn.id} className="border-white/10">
-                <TableCell className="font-medium text-zinc-900 dark:text-white">
-                  {txn.user}
-                </TableCell>
-                <TableCell>{txn.amount}</TableCell>
-                <TableCell>{txn.date}</TableCell>
-                <TableCell>
-                  <Badge className="rounded-full bg-emerald-500 text-white hover:bg-emerald-600">
-                    {txn.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="font-mono text-xs">{txn.id}</TableCell>
+      {loading ? (
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-[2rem] border border-white/20 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-white/10">
+                <TableHead>User</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Transaction ID</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+
+            <TableBody>
+              {transactions.map((txn) => (
+                <TableRow key={txn._id} className="border-white/10">
+                  <TableCell className="font-medium text-zinc-900 dark:text-white">
+                    {txn.userEmail}
+                  </TableCell>
+                  <TableCell>${txn.amount}</TableCell>
+                  <TableCell>
+                    {txn.paidAt
+                      ? new Date(txn.paidAt).toLocaleDateString()
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge className="rounded-full bg-emerald-500 text-white hover:bg-emerald-600">
+                      {txn.paymentStatus}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {txn.transactionId}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }

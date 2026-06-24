@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import recipes from "@/data/recipes.json";
+import { useSession } from "@/lib/auth-client";
 import {
   FaArrowLeft,
   FaClock,
@@ -26,23 +26,70 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Loader2 } from "lucide-react";
 
 const reportReasons = ["Spam", "Offensive Content", "Copyright Issue"];
 
 export default function RecipeDetailsPage() {
   const params = useParams();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const user = session?.user;
 
-  const recipe = useMemo(
-    () => recipes.find((item) => item._id === params.id),
-    [params.id]
-  );
-
+  const [recipe, setRecipe] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(recipe?.likesCount || 0);
+  const [likesCount, setLikesCount] = useState(0);
   const [favorited, setFavorited] = useState(false);
+  const [favoriteId, setFavoriteId] = useState(null);
   const [selectedReason, setSelectedReason] = useState("Spam");
   const [reportNote, setReportNote] = useState("");
   const [reportOpen, setReportOpen] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/recipes/${params.id}`)
+      .then((r) => {
+        if (!r.ok) throw new Error("Not found");
+        return r.json();
+      })
+      .then((data) => {
+        setRecipe(data);
+        setLikesCount(data.likesCount || 0);
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+        setRecipe(null);
+      });
+  }, [params.id]);
+
+  useEffect(() => {
+    if (!user || !recipe) return;
+    fetch("/api/favorites")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!Array.isArray(data)) return;
+        const fav = data.find(
+          (f) => String(f.recipeId?._id || f.recipeId) === recipe._id,
+        );
+        if (fav) {
+          setFavorited(true);
+          setFavoriteId(fav._id);
+        }
+      })
+      .catch(() => {});
+  }, [user, recipe]);
+
+  if (loading) {
+    return (
+      <section className="relative min-h-screen pt-24 pb-16">
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-6 w-6 animate-spin text-emerald-500" />
+        </div>
+      </section>
+    );
+  }
 
   if (!recipe) {
     return (
@@ -54,7 +101,10 @@ export default function RecipeDetailsPage() {
           <p className="text-zinc-600 dark:text-zinc-300">
             The recipe you are looking for does not exist.
           </p>
-          <Button asChild className="mx-auto w-fit rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
+          <Button
+            asChild
+            className="mx-auto w-fit rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white"
+          >
             <Link href="/browse">Back to Browse</Link>
           </Button>
         </div>
@@ -62,33 +112,59 @@ export default function RecipeDetailsPage() {
     );
   }
 
-  const handleLike = () => {
-    if (liked) {
-      setLikesCount((prev) => prev - 1);
-    } else {
-      setLikesCount((prev) => prev + 1);
-    }
-    setLiked((prev) => !prev);
+  const handleLike = async () => {
+    if (!user) return router.push("/login");
+    setActionLoading(true);
+    try {
+      const data = await fetch(`/api/recipes/${recipe._id}/like`, {
+        method: "PATCH",
+      }).then((r) => r.json());
+      setLiked(data.liked);
+      setLikesCount(data.likesCount);
+    } catch {}
+    setActionLoading(false);
   };
 
-  const handleFavorite = () => {
-    setFavorited((prev) => !prev);
+  const handleFavorite = async () => {
+    if (!user) return router.push("/login");
+    setActionLoading(true);
+    try {
+      if (favorited && favoriteId) {
+        await fetch(`/api/favorites/${recipe._id}`, { method: "DELETE" });
+        setFavorited(false);
+        setFavoriteId(null);
+      } else {
+        const data = await fetch("/api/favorites", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipeId: recipe._id }),
+        }).then((r) => r.json());
+        setFavorited(true);
+        setFavoriteId(data._id);
+      }
+    } catch {}
+    setActionLoading(false);
   };
 
   const handlePurchase = () => {
+    if (!user) return router.push("/login");
     alert("Stripe purchase flow will be connected here.");
   };
 
-  const handleReportSubmit = () => {
-    console.log({
-      recipeId: recipe._id,
-      reason: selectedReason,
-      note: reportNote,
-    });
-
-    setReportOpen(false);
-    setReportNote("");
-    setSelectedReason("Spam");
+  const handleReportSubmit = async () => {
+    if (!user) return router.push("/login");
+    setActionLoading(true);
+    try {
+      await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipeId: recipe._id, reason: selectedReason }),
+      }).then((r) => r.json());
+      setReportOpen(false);
+      setReportNote("");
+      setSelectedReason("Spam");
+    } catch {}
+    setActionLoading(false);
   };
 
   return (
@@ -110,7 +186,6 @@ export default function RecipeDetailsPage() {
         </Button>
 
         <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-          {/* Left content */}
           <div className="flex flex-col gap-10">
             <div className="overflow-hidden rounded-[2rem] border border-white/20 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
               <div className="relative h-[280px] sm:h-[380px]">
@@ -131,7 +206,6 @@ export default function RecipeDetailsPage() {
                   Ingredients
                 </h2>
               </div>
-
               <div className="grid gap-3 sm:grid-cols-2">
                 {recipe.ingredients.map((ingredient, index) => (
                   <div
@@ -148,14 +222,12 @@ export default function RecipeDetailsPage() {
               <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white">
                 Instructions
               </h2>
-
               <div className="rounded-3xl border border-white/20 bg-white/70 p-5 leading-7 text-zinc-700 backdrop-blur-md dark:border-white/10 dark:bg-white/5 dark:text-zinc-200">
                 {recipe.instructions}
               </div>
             </div>
           </div>
 
-          {/* Right summary */}
           <div className="lg:sticky lg:top-24">
             <div className="flex flex-col gap-6 rounded-[2rem] border border-white/20 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 sm:p-8">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">
@@ -180,7 +252,9 @@ export default function RecipeDetailsPage() {
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-white/20 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/5">
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">Preparation</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Preparation
+                  </p>
                   <div className="flex items-center gap-2 pt-1 text-sm font-semibold text-zinc-900 dark:text-white">
                     <FaClock className="text-emerald-500" />
                     {recipe.preparationTime} min
@@ -188,7 +262,9 @@ export default function RecipeDetailsPage() {
                 </div>
 
                 <div className="rounded-2xl border border-white/20 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/5">
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">Likes</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Likes
+                  </p>
                   <div className="flex items-center gap-2 pt-1 text-sm font-semibold text-zinc-900 dark:text-white">
                     <FaStar className="text-amber-500" />
                     {likesCount} likes
@@ -196,7 +272,9 @@ export default function RecipeDetailsPage() {
                 </div>
 
                 <div className="rounded-2xl border border-white/20 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/5 sm:col-span-2">
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">Author</p>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Author
+                  </p>
                   <div className="flex items-center gap-2 pt-1 text-sm font-semibold text-zinc-900 dark:text-white">
                     <FaUser className="text-teal-500" />
                     {recipe.authorName}
@@ -208,8 +286,8 @@ export default function RecipeDetailsPage() {
                 <div className="flex items-start gap-3">
                   <FaFire className="mt-1 text-emerald-500" />
                   <p className="text-sm leading-6 text-zinc-700 dark:text-zinc-300">
-                    Purchasing this recipe supports the creator directly. It's more
-                    like backing the creator than unlocking hidden content.
+                    Purchasing this recipe supports the creator directly. It's
+                    more like backing the creator than unlocking hidden content.
                   </p>
                 </div>
               </div>
@@ -217,27 +295,38 @@ export default function RecipeDetailsPage() {
               <div className="flex flex-col gap-3">
                 <Button
                   onClick={handleLike}
+                  disabled={actionLoading}
                   className={`h-11 rounded-xl ${
                     liked
                       ? "bg-rose-500 text-white hover:bg-rose-600"
                       : "bg-gradient-to-r from-rose-500 to-orange-500 text-white hover:from-rose-600 hover:to-orange-600"
                   }`}
                 >
-                  {liked ? <FaHeart className="mr-2" /> : <FaRegHeart className="mr-2" />}
+                  {liked ? (
+                    <FaHeart className="mr-2" />
+                  ) : (
+                    <FaRegHeart className="mr-2" />
+                  )}
                   {liked ? "Liked" : "Like Recipe"} ({likesCount})
                 </Button>
 
                 <Button
                   onClick={handleFavorite}
+                  disabled={actionLoading}
                   variant="outline"
                   className="h-11 rounded-xl border-white/20 bg-white/70 dark:border-white/10 dark:bg-white/5"
                 >
-                  {favorited ? <FaHeart className="mr-2 text-rose-500" /> : <FaRegHeart className="mr-2" />}
+                  {favorited ? (
+                    <FaHeart className="mr-2 text-rose-500" />
+                  ) : (
+                    <FaRegHeart className="mr-2" />
+                  )}
                   {favorited ? "Added to Favorites" : "Add to Favorites"}
                 </Button>
 
                 <Button
                   onClick={handlePurchase}
+                  disabled={actionLoading}
                   className="h-11 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600"
                 >
                   <FaShoppingBag className="mr-2" />
@@ -297,6 +386,7 @@ export default function RecipeDetailsPage() {
 
                       <Button
                         onClick={handleReportSubmit}
+                        disabled={actionLoading}
                         className="w-full rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600"
                       >
                         Submit Report

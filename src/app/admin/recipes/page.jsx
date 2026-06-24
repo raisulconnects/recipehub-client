@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { MoreHorizontal, Pencil, Trash2, Star, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import SectionHeader from "@/components/dashboard/SectionHeader";
@@ -20,32 +21,39 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 
-const recipes = [
-  {
-    id: "1",
-    name: "Creamy Garlic Pasta",
-    author: "Sophia Carter",
-    category: "Dinner",
-    featured: true,
-  },
-  {
-    id: "2",
-    name: "Spicy Chicken Ramen",
-    author: "Ayaan Malik",
-    category: "Lunch",
-    featured: false,
-  },
-  {
-    id: "3",
-    name: "Berry Pancake Stack",
-    author: "Nadia Rahman",
-    category: "Breakfast",
-    featured: true,
-  },
-];
-
 export default function AdminRecipesPage() {
   const { isPending } = useSession();
+  const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchRecipes = () => {
+    fetch("/api/recipes?limit=100&showAll=true")
+      .then((r) => r.json())
+      .then((data) => {
+        setRecipes(data.data || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchRecipes();
+  }, []);
+
+  const handleToggleFeature = async (id) => {
+    try {
+      await fetch(`/api/recipes/${id}/feature`, { method: "PATCH" });
+      fetchRecipes();
+    } catch {}
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm("Delete this recipe?")) return;
+    try {
+      await fetch(`/api/recipes/${id}`, { method: "DELETE" });
+      fetchRecipes();
+    } catch {}
+  };
 
   if (isPending) {
     return (
@@ -62,68 +70,83 @@ export default function AdminRecipesPage() {
         description="Edit, delete, or feature recipes that should appear on the homepage."
       />
 
-      <div className="overflow-hidden rounded-[2rem] border border-white/20 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-white/10">
-              <TableHead>Recipe</TableHead>
-              <TableHead>Author</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Featured</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {recipes.map((recipe) => (
-              <TableRow key={recipe.id} className="border-white/10">
-                <TableCell className="font-medium text-zinc-900 dark:text-white">
-                  {recipe.name}
-                </TableCell>
-                <TableCell>{recipe.author}</TableCell>
-                <TableCell>{recipe.category}</TableCell>
-                <TableCell>
-                  {recipe.featured ? (
-                    <Badge className="rounded-full bg-emerald-500 text-white hover:bg-emerald-600">
-                      Featured
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="rounded-full">
-                      Not Featured
-                    </Badge>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="rounded-xl">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent align="end" className="rounded-xl">
-                      <DropdownMenuItem>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit Recipe
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem>
-                        <Star className="mr-2 h-4 w-4" />
-                        {recipe.featured ? "Remove from Featured" : "Feature Recipe"}
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem className="text-red-500 focus:text-red-500">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete Recipe
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+      {loading ? (
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-[2rem] border border-white/20 bg-white/70 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-white/10">
+                <TableHead>Recipe</TableHead>
+                <TableHead>Author</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Featured</TableHead>
+                <TableHead>Action</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+
+            <TableBody>
+              {recipes.map((recipe) => (
+                <TableRow key={recipe._id} className="border-white/10">
+                  <TableCell className="font-medium text-zinc-900 dark:text-white">
+                    {recipe.recipeName}
+                  </TableCell>
+                  <TableCell>{recipe.authorName}</TableCell>
+                  <TableCell>{recipe.category}</TableCell>
+                  <TableCell>
+                    {recipe.isFeatured ? (
+                      <Badge className="rounded-full bg-emerald-500 text-white hover:bg-emerald-600">
+                        Featured
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="rounded-full">
+                        Not Featured
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="rounded-xl">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+
+                      <DropdownMenuContent align="end" className="rounded-xl">
+                        <DropdownMenuItem
+                          onClick={() =>
+                            alert("Edit functionality coming soon")
+                          }
+                        >
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit Recipe
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem onClick={() => handleToggleFeature(recipe._id)}>
+                          <Star className="mr-2 h-4 w-4" />
+                          {recipe.isFeatured
+                            ? "Remove from Featured"
+                            : "Feature Recipe"}
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
+                          onClick={() => handleDelete(recipe._id)}
+                          className="text-red-500 focus:text-red-500"
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Recipe
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   );
 }

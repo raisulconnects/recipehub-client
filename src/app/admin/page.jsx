@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Users,
   ChefHat,
@@ -15,6 +16,27 @@ import { Badge } from "@/components/ui/badge";
 
 export default function AdminOverviewPage() {
   const { data: session, isPending } = useSession();
+  const [stats, setStats] = useState({ users: 0, recipes: 0, premium: 0, reports: 0 });
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/users").then((r) => r.json()),
+      fetch("/api/recipes?limit=1&showAll=true").then((r) => r.json()),
+      fetch("/api/reports").then((r) => r.json()),
+    ])
+      .then(([usersData, recipesData, reportsData]) => {
+        const users = Array.isArray(usersData) ? usersData : [];
+        setStats({
+          users: users.length,
+          premium: users.filter((u) => u.isPremium).length,
+          recipes: recipesData.total || 0,
+          reports: Array.isArray(reportsData) ? reportsData.filter((r) => r.status === "pending").length : 0,
+        });
+        setStatsLoading(false);
+      })
+      .catch(() => setStatsLoading(false));
+  }, []);
 
   if (isPending) {
     return (
@@ -26,31 +48,11 @@ export default function AdminOverviewPage() {
 
   const adminName = session?.user?.name?.split(" ")[0] || "Admin";
 
-  const stats = [
-    {
-      label: "Total Users",
-      value: 248,
-      hint: "Registered platform users",
-      icon: Users,
-    },
-    {
-      label: "Total Recipes",
-      value: 96,
-      hint: "Recipes published platform-wide",
-      icon: ChefHat,
-    },
-    {
-      label: "Premium Members",
-      value: 37,
-      hint: "Users with premium access",
-      icon: Crown,
-    },
-    {
-      label: "Total Reports",
-      value: 12,
-      hint: "Pending moderation items",
-      icon: FileWarning,
-    },
+  const statItems = [
+    { label: "Total Users", value: stats.users, hint: "Registered platform users", icon: Users },
+    { label: "Total Recipes", value: stats.recipes, hint: "Recipes published platform-wide", icon: ChefHat },
+    { label: "Premium Members", value: stats.premium, hint: "Users with premium access", icon: Crown },
+    { label: "Pending Reports", value: stats.reports, hint: "Pending moderation items", icon: FileWarning },
   ];
 
   return (
@@ -65,29 +67,28 @@ export default function AdminOverviewPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {stats.map((item) => (
-          <StatCard
-            key={item.label}
-            icon={item.icon}
-            label={item.label}
-            value={item.value}
-            hint={item.hint}
-          />
-        ))}
-      </div>
+      {statsLoading ? (
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {statItems.map((item) => (
+            <StatCard key={item.label} icon={item.icon} label={item.label} value={item.value} hint={item.hint} />
+          ))}
+        </div>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="flex flex-col gap-5 rounded-[2rem] border border-white/20 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
           <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
             Admin Activity
           </h2>
-
           <div className="flex flex-col gap-4">
             {[
-              "3 new recipes are waiting for moderation review.",
-              "2 user accounts were flagged for suspicious behavior.",
-              "5 reports are still pending action.",
+              `${stats.reports} reports are still pending action.`,
+              `${stats.recipes} recipes are published on the platform.`,
+              `${stats.users} users have joined the platform.`,
             ].map((item, idx) => (
               <div
                 key={idx}

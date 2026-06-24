@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Crown, Heart, ChefHat, ThumbsUp, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
@@ -12,6 +13,24 @@ export default function DashboardOverviewPage() {
   const user = session?.user;
   const isPremium = user?.isPremium || false;
 
+  const [stats, setStats] = useState({ recipes: 0, favorites: 0, likes: 0 });
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    fetch("/api/users/stats")
+      .then((r) => r.json())
+      .then((data) => {
+        setStats({
+          recipes: data.totalRecipes || 0,
+          favorites: data.totalFavorites || 0,
+          likes: data.totalLikesReceived || 0,
+        });
+        setStatsLoading(false);
+      })
+      .catch(() => setStatsLoading(false));
+  }, [user?.email]);
+
   if (isPending) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -20,22 +39,22 @@ export default function DashboardOverviewPage() {
     );
   }
 
-  const stats = [
+  const statItems = [
     {
       label: "Total Recipes",
-      value: 2,
+      value: stats.recipes,
       hint: "Recipes created by you",
       icon: ChefHat,
     },
     {
       label: "Total Favorites",
-      value: 6,
+      value: stats.favorites,
       hint: "Recipes saved for later",
       icon: Heart,
     },
     {
       label: "Likes Received",
-      value: 142,
+      value: stats.likes,
       hint: "Across all published recipes",
       icon: ThumbsUp,
     },
@@ -64,24 +83,29 @@ export default function DashboardOverviewPage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {stats.map((item) => (
-          <StatCard
-            key={item.label}
-            icon={item.icon}
-            label={item.label}
-            value={item.value}
-            hint={item.hint}
-          />
-        ))}
-      </div>
+      {statsLoading ? (
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {statItems.map((item) => (
+            <StatCard
+              key={item.label}
+              icon={item.icon}
+              label={item.label}
+              value={item.value}
+              hint={item.hint}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <div className="flex flex-col gap-5 rounded-[2rem] border border-white/20 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
           <h2 className="text-xl font-semibold text-zinc-900 dark:text-white">
             Recent Activity
           </h2>
-
           <div className="flex flex-col gap-4">
             {[
               `Welcome to RecipeHub, ${userName}!`,
@@ -119,7 +143,6 @@ export default function DashboardOverviewPage() {
                 Free users can add up to 2 recipes. Upgrade when you hit the
                 limit to keep publishing without restrictions.
               </p>
-
               <Link
                 href="/premium"
                 className="inline-flex rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-sm font-semibold text-white transition hover:from-emerald-600 hover:to-teal-600"
