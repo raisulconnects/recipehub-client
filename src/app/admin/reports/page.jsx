@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MoreHorizontal, Trash2, CheckCircle2, Loader2 } from "lucide-react";
+import { MoreHorizontal, Trash2, CheckCircle2, Loader2, MessageSquareText } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import { Badge } from "@/components/ui/badge";
@@ -20,11 +20,18 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function AdminReportsPage() {
   const { isPending } = useSession();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [detailReport, setDetailReport] = useState(null);
 
   const fetchReports = () => {
     fetch("/api/reports")
@@ -43,6 +50,7 @@ export default function AdminReportsPage() {
   const handleDismiss = async (id) => {
     try {
       await fetch(`/api/reports/${id}/dismiss`, { method: "PATCH" });
+      setDetailReport(null);
       fetchReports();
     } catch {}
   };
@@ -51,6 +59,7 @@ export default function AdminReportsPage() {
     if (!confirm("Remove the reported recipe? This cannot be undone.")) return;
     try {
       await fetch(`/api/reports/${id}/remove-recipe`, { method: "DELETE" });
+      setDetailReport(null);
       fetchReports();
     } catch {}
   };
@@ -82,6 +91,7 @@ export default function AdminReportsPage() {
                 <TableHead>Recipe</TableHead>
                 <TableHead>Reporter</TableHead>
                 <TableHead>Reason</TableHead>
+                <TableHead>Message</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Action</TableHead>
               </TableRow>
@@ -101,6 +111,21 @@ export default function AdminReportsPage() {
                       <Badge variant="outline" className="rounded-full">
                         {report.reason}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {report.note ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDetailReport(report)}
+                          className="rounded-xl text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+                        >
+                          <MessageSquareText className="mr-1.5 h-3.5 w-3.5" />
+                          View Note
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-zinc-400">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {report.status === "pending" ? (
@@ -155,6 +180,69 @@ export default function AdminReportsPage() {
           </Table>
         </div>
       )}
+
+      <Dialog open={!!detailReport} onOpenChange={(open) => { if (!open) setDetailReport(null); }}>
+        <DialogContent className="max-w-sm sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Report Details</DialogTitle>
+          </DialogHeader>
+
+          {detailReport && (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2.5 rounded-xl border bg-muted/50 p-3.5">
+                <div className="flex items-start gap-3 text-sm">
+                  <span className="min-w-[4.5rem] text-muted-foreground">Recipe</span>
+                  <span className="font-medium">{detailReport.recipeId?.recipeName || "Unknown Recipe"}</span>
+                </div>
+                <div className="flex items-start gap-3 text-sm">
+                  <span className="min-w-[4.5rem] text-muted-foreground">Reporter</span>
+                  <span className="font-medium break-all">{detailReport.reporterEmail}</span>
+                </div>
+                <div className="flex items-start gap-3 text-sm">
+                  <span className="min-w-[4.5rem] text-muted-foreground">Reason</span>
+                  <Badge variant="outline" className="rounded-full">{detailReport.reason}</Badge>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5 rounded-xl border border-amber-200/60 bg-amber-50/70 p-3.5 dark:border-amber-900/40 dark:bg-amber-950/30">
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-400">
+                  Reporter's Note
+                </p>
+                <p className="text-sm leading-6 text-amber-900 dark:text-amber-200">
+                  {detailReport.note || "No additional note provided."}
+                </p>
+              </div>
+
+              {detailReport.status === "pending" ? (
+                <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDismiss(detailReport._id)}
+                    className="rounded-xl"
+                  >
+                    <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                    Dismiss Report
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleRemoveRecipe(detailReport._id)}
+                    className="rounded-xl"
+                  >
+                    <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                    Remove Recipe
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-center text-xs text-muted-foreground">
+                  This report has already been handled.
+                </p>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

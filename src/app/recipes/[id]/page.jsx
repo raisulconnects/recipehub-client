@@ -158,7 +158,7 @@ export default function RecipeDetailsPage() {
       await fetch("/api/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipeId: recipe._id, reason: selectedReason }),
+        body: JSON.stringify({ recipeId: recipe._id, reason: selectedReason, note: reportNote }),
       }).then((r) => r.json());
       setReportOpen(false);
       setReportNote("");
