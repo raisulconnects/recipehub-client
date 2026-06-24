@@ -15,6 +15,11 @@ export async function proxy(req) {
     const isDashboardRoute = path.startsWith("/dashboard");
     const isAdminRoute = path.startsWith("/admin");
     const isAuthRoute = path === "/login" || path === "/register";
+    const isBlockedRoute = path === "/blocked";
+
+    if (session?.user?.isBlocked && !isBlockedRoute) {
+      return NextResponse.redirect(new URL("/blocked", req.url));
+    }
 
     if (isDashboardRoute && !session) {
       return NextResponse.redirect(new URL("/login", req.url));
