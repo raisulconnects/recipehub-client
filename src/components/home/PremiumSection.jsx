@@ -39,7 +39,7 @@ export default function PremiumSection() {
                   size="lg"
                   className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:from-amber-600 hover:to-orange-600"
                 >
-                  <Link href="/dashboard">
+                  <Link href="/premium">
                     Get Premium
                     <Crown className="ml-2 h-4 w-4" />
                   </Link>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Crown, Heart, ChefHat, ThumbsUp, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import StatCard from "@/components/dashboard/StatCard";
@@ -119,9 +120,12 @@ export default function DashboardOverviewPage() {
                 limit to keep publishing without restrictions.
               </p>
 
-              <button className="inline-flex rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-sm font-semibold text-white transition hover:from-emerald-600 hover:to-teal-600">
+              <Link
+                href="/premium"
+                className="inline-flex rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-2 text-sm font-semibold text-white transition hover:from-emerald-600 hover:to-teal-600"
+              >
                 Become Premium
-              </button>
+              </Link>
             </div>
           </div>
         ) : (

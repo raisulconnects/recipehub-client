@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import { Crown, Loader2 } from "lucide-react";
 import SectionHeader from "@/components/dashboard/SectionHeader";
@@ -52,8 +53,10 @@ export default function AddRecipePage() {
             premium to add unlimited recipes.
           </p>
 
-          <Button className="mt-4 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600">
-            Become Premium
+          <Button asChild className="mt-4 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600">
+            <Link href="/premium">
+              Become Premium
+            </Link>
           </Button>
         </div>
       )}
