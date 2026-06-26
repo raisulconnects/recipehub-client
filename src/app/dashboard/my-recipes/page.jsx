@@ -103,6 +103,12 @@ export default function MyRecipesPage() {
                       View
                     </Link>
                   </Button>
+                  <Button asChild variant="outline" className="rounded-xl">
+                    <Link href={`/dashboard/edit-recipe/${recipe._id}`}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </Link>
+                  </Button>
                   <Button variant="destructive" className="rounded-xl" onClick={() => handleDelete(recipe._id)}>
                     <Trash2 className="mr-2 h-4 w-4" />
                     Delete
