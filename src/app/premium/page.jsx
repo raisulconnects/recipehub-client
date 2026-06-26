@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import {
@@ -48,6 +49,18 @@ export default function PremiumPage() {
   const user = session?.user;
   const isPremium = user?.isPremium || false;
   const userName = user?.name?.split(" ")[0] || "there";
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  const handleCheckout = async () => {
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch("/api/checkout_sessions", { method: "POST" });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch {
+      setCheckoutLoading(false);
+    }
+  };
 
   if (isPending) {
     return (
@@ -158,8 +171,17 @@ export default function PremiumPage() {
                   </p>
 
                   <div className="flex flex-wrap gap-3">
-                    <Button className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-6 text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-emerald-500/40">
-                      Upgrade to Premium
+                    <Button
+                      className="rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-6 text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-emerald-500/40"
+                      onClick={handleCheckout}
+                      disabled={checkoutLoading}
+                    >
+                      {checkoutLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Crown className="mr-2 h-4 w-4" />
+                      )}
+                      {checkoutLoading ? "Redirecting..." : "Upgrade to Premium"}
                     </Button>
 
                     <Button asChild variant="outline" className="rounded-xl">
@@ -255,8 +277,15 @@ export default function PremiumPage() {
                   </h2>
                 </div>
 
-                <Button className="rounded-xl bg-emerald-500 text-white hover:bg-emerald-600">
-                  Continue to Checkout
+                <Button
+                  className="rounded-xl bg-emerald-500 text-white hover:bg-emerald-600"
+                  onClick={handleCheckout}
+                  disabled={checkoutLoading}
+                >
+                  {checkoutLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
+                  {checkoutLoading ? "Redirecting..." : "Continue to Checkout"}
                 </Button>
               </div>
 
