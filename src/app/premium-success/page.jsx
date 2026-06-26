@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useState, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { getSession } from "@/lib/auth-client";
@@ -20,6 +20,18 @@ function PremiumSuccessContent() {
 
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
+  const reloadTimer = useRef(null);
+
+  useEffect(() => {
+    if (status === "success") {
+      reloadTimer.current = setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+    }
+    return () => {
+      if (reloadTimer.current) clearTimeout(reloadTimer.current);
+    };
+  }, [status]);
 
   const verify = useCallback(async () => {
     if (!session_id) {
@@ -150,6 +162,10 @@ function PremiumSuccessContent() {
             </Link>
           </Button>
         </div>
+
+        <p className="text-xs text-zinc-400 dark:text-zinc-500">
+          Reloading in a moment…
+        </p>
       </div>
     </section>
   );

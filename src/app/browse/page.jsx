@@ -1,58 +1,80 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import RecipeCard from "@/components/recipes/RecipeCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
-
-const RECIPES_PER_PAGE = 6;
+import { Loader2, Search, X } from "lucide-react";
 
 export default function BrowsePage() {
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [categories, setCategories] = useState(["All"]);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const debounceRef = useRef(null);
 
+  // Fetch categories once on mount
   useEffect(() => {
-    setLoading(true);
     fetch("/api/recipes?limit=100")
       .then((r) => r.json())
       .then((data) => {
+        if (data.data) {
+          const cats = [...new Set(data.data.map((r) => r.category))];
+          setCategories(["All", ...cats]);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // Debounce search
+  useEffect(() => {
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(debounceRef.current);
+  }, [search]);
+
+  // Reset to page 1 when search or category changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, selectedCategory]);
+
+  // Fetch recipes — fully server-side
+  useEffect(() => {
+    setLoading(true);
+    const params = new URLSearchParams();
+    params.set("page", currentPage);
+    params.set("limit", 6);
+    if (selectedCategory !== "All") params.set("categories", selectedCategory);
+    if (debouncedSearch) params.set("search", debouncedSearch);
+
+    fetch(`/api/recipes?${params}`)
+      .then((r) => r.json())
+      .then((data) => {
         setRecipes(data.data || []);
+        setTotal(data.total || 0);
+        setTotalPages(data.totalPages || 0);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [currentPage, selectedCategory, debouncedSearch]);
 
-  const categories = useMemo(() => {
-    const unique = [...new Set(recipes.map((r) => r.category))];
-    return ["All", ...unique];
-  }, [recipes]);
-
-  const filteredRecipes = useMemo(() => {
-    const active = recipes.filter((r) => r.status === "active");
-    if (selectedCategory === "All") return active;
-    return active.filter((r) => r.category === selectedCategory);
-  }, [recipes, selectedCategory]);
-
-  const totalPages = Math.ceil(filteredRecipes.length / RECIPES_PER_PAGE);
-
-  const paginatedRecipes = useMemo(() => {
-    const start = (currentPage - 1) * RECIPES_PER_PAGE;
-    return filteredRecipes.slice(start, start + RECIPES_PER_PAGE);
-  }, [filteredRecipes, currentPage]);
-
-  const handleCategoryChange = (category) => {
-    setSelectedCategory(category);
+  const handleClearSearch = () => {
+    setSearch("");
+    setDebouncedSearch("");
     setCurrentPage(1);
   };
 
   return (
     <section className="relative min-h-screen overflow-hidden pt-24 pb-16">
       <div className="absolute inset-0 -z-20 bg-gradient-to-br from-emerald-50 via-white to-teal-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-emerald-950/30" />
-      <div className="absolute top-10 left-0 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl -z-10" />
-      <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-teal-400/10 blur-3xl -z-10" />
+      <div className="absolute top-10 left-0 -z-10 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl" />
+      <div className="absolute bottom-0 right-0 -z-10 h-72 w-72 rounded-full bg-teal-400/10 blur-3xl" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="mb-10 max-w-3xl">
@@ -69,11 +91,32 @@ export default function BrowsePage() {
           </p>
         </div>
 
+        {/* Search bar */}
+        <div className="mb-6 flex items-center gap-3 rounded-2xl border border-white/20 bg-white/70 px-4 py-3 backdrop-blur-xl dark:border-white/10 dark:bg-white/5">
+          <Search className="h-4 w-4 shrink-0 text-zinc-400" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search recipes…"
+            className="w-full bg-transparent text-sm text-zinc-900 outline-none placeholder:text-zinc-400 dark:text-zinc-100"
+          />
+          {search && (
+            <button
+              onClick={handleClearSearch}
+              className="flex h-6 w-6 items-center justify-center rounded-full transition-colors hover:bg-zinc-200 dark:hover:bg-zinc-700"
+            >
+              <X className="h-4 w-4 text-zinc-400" />
+            </button>
+          )}
+        </div>
+
+        {/* Category pills */}
         <div className="mb-8 flex flex-wrap gap-3">
           {categories.map((category) => (
             <button
               key={category}
-              onClick={() => handleCategoryChange(category)}
+              onClick={() => setSelectedCategory(category)}
               className={`rounded-full border px-4 py-2 text-sm font-medium transition-all duration-200 ${
                 selectedCategory === category
                   ? "border-emerald-500 bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
@@ -85,27 +128,35 @@ export default function BrowsePage() {
           ))}
         </div>
 
+        {/* Result count */}
         <div className="mb-6">
           <p className="text-sm text-zinc-600 dark:text-zinc-300">
             Showing{" "}
             <span className="font-semibold text-zinc-900 dark:text-white">
-              {paginatedRecipes.length}
+              {recipes.length}
             </span>{" "}
             of{" "}
             <span className="font-semibold text-zinc-900 dark:text-white">
-              {filteredRecipes.length}
+              {total}
             </span>{" "}
             recipes
+            {debouncedSearch && (
+              <span>
+                {" "}
+                for "<span className="font-medium">{debouncedSearch}</span>"
+              </span>
+            )}
           </p>
         </div>
 
+        {/* Recipe grid */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-emerald-500" />
           </div>
-        ) : paginatedRecipes.length > 0 ? (
+        ) : recipes.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {paginatedRecipes.map((recipe) => (
+            {recipes.map((recipe) => (
               <RecipeCard key={recipe._id} recipe={recipe} />
             ))}
           </div>
@@ -115,11 +166,12 @@ export default function BrowsePage() {
               No recipes found
             </h3>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-              Try changing the category filter to explore more recipes.
+              Try changing the category or search term.
             </p>
           </div>
         )}
 
+        {/* Pagination */}
         {totalPages > 1 && (
           <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
             <Button

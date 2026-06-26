@@ -188,19 +188,6 @@ export default function AddRecipePage() {
         onSubmit={handleSubmit}
         className="flex flex-col gap-10 rounded-[2rem] border border-white/20 bg-white/70 p-6 backdrop-blur-xl dark:border-white/10 dark:bg-white/5 sm:p-8"
       >
-        {error && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-400">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-400">
-            <CheckCircle2 className="h-4 w-4" />
-            Recipe created! Redirecting...
-          </div>
-        )}
-
         <div className="grid gap-6 md:grid-cols-2">
           <div className="flex flex-col gap-2.5">
             <Label>Recipe Name</Label>
@@ -352,9 +339,15 @@ export default function AddRecipePage() {
           />
         </div>
 
+        {error && (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600 dark:border-rose-900 dark:bg-rose-950/30 dark:text-rose-400">
+            {error}
+          </div>
+        )}
+
         <Button
           type="submit"
-          disabled={limitReached || submitting}
+          disabled={limitReached || submitting || success}
           className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 py-6 text-base font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-600 hover:to-teal-600 hover:shadow-emerald-500/40 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:px-10 sm:py-3"
         >
           {submitting ? (
@@ -362,10 +355,21 @@ export default function AddRecipePage() {
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Publishing…
             </>
+          ) : success ? (
+            <>
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Published!
+            </>
           ) : (
             "Publish Recipe"
           )}
         </Button>
+
+        {success && (
+          <p className="text-sm text-emerald-600 dark:text-emerald-400">
+            Recipe created! Redirecting…
+          </p>
+        )}
       </form>
     </div>
   );
