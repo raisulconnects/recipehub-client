@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
-import { Crown, Loader2, CheckCircle2 } from "lucide-react";
+import { Crown, Loader2, CheckCircle2, Upload, X } from "lucide-react";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,47 @@ export default function AddRecipePage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [imageUploading, setImageUploading] = useState(false);
+  const [imageError, setImageError] = useState("");
+
+  const uploadToImgBB = async (file) => {
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) throw new Error("Image must be under 5MB");
+
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) throw new Error("Only JPG, PNG, or WebP allowed");
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const res = await fetch(
+      `https://api.imgbb.com/1/upload?key=${process.env.NEXT_PUBLIC_IMGBB_API_KEY}`,
+      { method: "POST", body: formData },
+    );
+
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error?.message || "Upload failed");
+    return data.data.url;
+  };
+
+  const handleImageSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageError("");
+    setImageUploading(true);
+    try {
+      const url = await uploadToImgBB(file);
+      setForm((prev) => ({ ...prev, recipeImage: url }));
+    } catch (err) {
+      setImageError(err.message);
+    }
+    setImageUploading(false);
+  };
+
+  const handleRemoveImage = () => {
+    setForm((prev) => ({ ...prev, recipeImage: "" }));
+    setImageError("");
+  };
 
   const [form, setForm] = useState({
     recipeName: "",
@@ -167,13 +208,64 @@ export default function AddRecipePage() {
           </div>
 
           <div className="flex flex-col gap-2.5">
-            <Label>Recipe Image URL</Label>
-            <Input
-              name="recipeImage"
-              value={form.recipeImage}
-              onChange={handleChange}
-              placeholder="/recipes/goodfood.jpg"
-            />
+            <Label>Recipe Image</Label>
+            {form.recipeImage ? (
+              <div className="relative overflow-hidden rounded-xl border border-white/20">
+                <img
+                  src={form.recipeImage}
+                  alt="Recipe preview"
+                  className="h-48 w-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={handleRemoveImage}
+                  className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 text-white transition-colors hover:bg-black/70"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <label
+                className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-8 transition-colors
+                  ${imageUploading
+                    ? "border-emerald-300 bg-emerald-50/50 dark:border-emerald-700 dark:bg-emerald-950/10"
+                    : "border-white/30 bg-white/40 hover:border-emerald-400 hover:bg-emerald-50/30 dark:border-white/10 dark:bg-white/5 dark:hover:border-emerald-600 dark:hover:bg-emerald-950/10"
+                  }`}
+              >
+                {imageUploading ? (
+                  <>
+                    <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      Uploading image…
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 dark:bg-emerald-950/30">
+                      <Upload className="h-5 w-5 text-emerald-500" />
+                    </div>
+                    <div className="flex flex-col items-center gap-0.5">
+                      <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        Click to upload image
+                      </p>
+                      <p className="text-xs text-zinc-400">
+                        JPG, PNG, or WebP · Max 5MB
+                      </p>
+                    </div>
+                  </>
+                )}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                  disabled={imageUploading}
+                />
+              </label>
+            )}
+            {imageError && (
+              <p className="text-xs text-rose-500">{imageError}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-2.5">
