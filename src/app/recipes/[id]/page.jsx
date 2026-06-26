@@ -158,9 +158,26 @@ export default function RecipeDetailsPage() {
     setActionLoading(false);
   };
 
-  const handlePurchase = () => {
+  const handlePurchase = async () => {
     if (!user) return router.push("/login");
-    alert("Stripe purchase flow will be connected here.");
+    setActionLoading(true);
+    try {
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token;
+
+      const res = await fetch("/api/payments/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify({ type: "recipe", recipeId: recipe._id }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch (e) {
+      console.error("Purchase error:", e);
+    }
   };
 
   const handleReportSubmit = async () => {
@@ -347,8 +364,12 @@ export default function RecipeDetailsPage() {
                   disabled={actionLoading}
                   className="h-11 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600"
                 >
-                  <FaShoppingBag className="mr-2" />
-                  Support Creator
+                  {actionLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <FaShoppingBag className="mr-2" />
+                  )}
+                  {actionLoading ? "Redirecting…" : "Support Creator — $2.99"}
                 </Button>
 
                 <Dialog open={reportOpen} onOpenChange={setReportOpen}>
