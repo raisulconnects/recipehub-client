@@ -43,7 +43,8 @@ export default function EditRecipePage() {
         return r.json();
       })
       .then((recipe) => {
-        if (!user || recipe.authorEmail !== user.email) {
+        const isAdmin = user?.role === "admin";
+        if (!user || (!isAdmin && recipe.authorEmail !== user.email)) {
           setNotFound(true);
           return;
         }

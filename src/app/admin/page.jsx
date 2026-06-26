@@ -9,7 +9,7 @@ import {
   Loader2,
   ShieldCheck,
 } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 import StatCard from "@/components/dashboard/StatCard";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import { Badge } from "@/components/ui/badge";
@@ -20,12 +20,18 @@ export default function AdminOverviewPage() {
   const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/users").then((r) => r.json()),
-      fetch("/api/recipes?limit=1&showAll=true").then((r) => r.json()),
-      fetch("/api/reports").then((r) => r.json()),
-    ])
-      .then(([usersData, recipesData, reportsData]) => {
+    const fetchStats = async () => {
+      try {
+        const { data: tokenData } = await authClient.token();
+        const token = tokenData?.token;
+        const headers = { ...(token && { Authorization: `Bearer ${token}` }) };
+
+        const [usersData, recipesData, reportsData] = await Promise.all([
+          fetch("/api/users", { headers }).then((r) => r.json()),
+          fetch("/api/recipes?limit=1&showAll=true").then((r) => r.json()),
+          fetch("/api/reports", { headers }).then((r) => r.json()),
+        ]);
+
         const users = Array.isArray(usersData) ? usersData : [];
         setStats({
           users: users.length,
@@ -33,9 +39,10 @@ export default function AdminOverviewPage() {
           recipes: recipesData.total || 0,
           reports: Array.isArray(reportsData) ? reportsData.filter((r) => r.status === "pending").length : 0,
         });
-        setStatsLoading(false);
-      })
-      .catch(() => setStatsLoading(false));
+      } catch {}
+      setStatsLoading(false);
+    };
+    fetchStats();
   }, []);
 
   if (isPending) {

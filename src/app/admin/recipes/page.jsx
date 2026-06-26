@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { MoreHorizontal, Pencil, Trash2, Star, Loader2 } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function AdminRecipesPage() {
+  const router = useRouter();
   const { isPending } = useSession();
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +44,12 @@ export default function AdminRecipesPage() {
 
   const handleToggleFeature = async (id) => {
     try {
-      await fetch(`/api/recipes/${id}/feature`, { method: "PATCH" });
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token;
+      await fetch(`/api/recipes/${id}/feature`, {
+        method: "PATCH",
+        headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+      });
       fetchRecipes();
     } catch {}
   };
@@ -50,7 +57,12 @@ export default function AdminRecipesPage() {
   const handleDelete = async (id) => {
     if (!confirm("Delete this recipe?")) return;
     try {
-      await fetch(`/api/recipes/${id}`, { method: "DELETE" });
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token;
+      await fetch(`/api/recipes/${id}`, {
+        method: "DELETE",
+        headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+      });
       fetchRecipes();
     } catch {}
   };
@@ -117,7 +129,7 @@ export default function AdminRecipesPage() {
                       <DropdownMenuContent align="end" className="rounded-xl">
                         <DropdownMenuItem
                           onClick={() =>
-                            alert("Edit functionality coming soon")
+                            router.push(`/dashboard/edit-recipe/${recipe._id}`)
                           }
                         >
                           <Pencil className="mr-2 h-4 w-4" />

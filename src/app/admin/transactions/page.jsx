@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -20,13 +20,21 @@ export default function AdminTransactionsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/payments/transactions")
-      .then((r) => r.json())
-      .then((data) => {
+    const fetchTransactions = async () => {
+      try {
+        const { data: tokenData } = await authClient.token();
+        const token = tokenData?.token;
+        const res = await fetch("/api/payments/transactions", {
+          headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+        });
+        const data = await res.json();
         setTransactions(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      } catch {
+        setTransactions([]);
+      }
+      setLoading(false);
+    };
+    fetchTransactions();
   }, []);
 
   if (isPending) {

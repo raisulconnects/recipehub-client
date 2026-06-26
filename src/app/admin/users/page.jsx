@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MoreHorizontal, ShieldOff, ShieldCheck, Loader2 } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,14 +26,18 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchUsers = () => {
-    fetch("/api/users")
-      .then((r) => r.json())
-      .then((data) => {
-        setUsers(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+  const fetchUsers = async () => {
+    try {
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token;
+      const headers = { ...(token && { Authorization: `Bearer ${token}` }) };
+      const res = await fetch("/api/users", { headers });
+      const data = await res.json();
+      setUsers(Array.isArray(data) ? data : []);
+    } catch {
+      setUsers([]);
+    }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -42,7 +46,12 @@ export default function AdminUsersPage() {
 
   const handleToggleBlock = async (id) => {
     try {
-      await fetch(`/api/users/${id}/block`, { method: "PATCH" });
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token;
+      await fetch(`/api/users/${id}/block`, {
+        method: "PATCH",
+        headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+      });
       fetchUsers();
     } catch {}
   };

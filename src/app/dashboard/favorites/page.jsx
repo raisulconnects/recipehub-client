@@ -16,15 +16,20 @@ export default function FavoritesPage() {
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchFavorites = () => {
+  const fetchFavorites = async () => {
     if (!user) return;
-    fetch("/api/favorites")
-      .then((r) => r.json())
-      .then((data) => {
-        setFavorites(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    try {
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token;
+      const res = await fetch("/api/favorites", {
+        headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+      });
+      const data = await res.json();
+      setFavorites(Array.isArray(data) ? data : []);
+    } catch {
+      setFavorites([]);
+    }
+    setLoading(false);
   };
 
   useEffect(() => {

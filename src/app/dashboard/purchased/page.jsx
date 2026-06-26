@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BadgeCheck, Eye, Loader2 } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import { Button } from "@/components/ui/button";
 
@@ -16,13 +16,23 @@ export default function PurchasedRecipesPage() {
 
   useEffect(() => {
     if (!user) return;
-    fetch("/api/payments/purchased")
-      .then((r) => r.json())
-      .then((data) => {
+    const fetchPurchases = async () => {
+      try {
+        const { data: tokenData } = await authClient.token();
+        const token = tokenData?.token;
+        const res = await fetch("/api/payments/purchased", {
+          headers: {
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+        });
+        const data = await res.json();
         setPurchases(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+      } catch {
+        setPurchases([]);
+      }
+      setLoading(false);
+    };
+    fetchPurchases();
   }, [user]);
 
   if (isPending) {

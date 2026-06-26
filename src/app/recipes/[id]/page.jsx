@@ -66,9 +66,14 @@ export default function RecipeDetailsPage() {
 
   useEffect(() => {
     if (!user || !recipe) return;
-    fetch("/api/favorites")
-      .then((r) => r.json())
-      .then((data) => {
+    const fetchFavorites = async () => {
+      try {
+        const { data: tokenData } = await authClient.token();
+        const token = tokenData?.token;
+        const res = await fetch("/api/favorites", {
+          headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+        });
+        const data = await res.json();
         if (!Array.isArray(data)) return;
         const fav = data.find(
           (f) => String(f.recipeId?._id || f.recipeId) === recipe._id,
@@ -77,8 +82,9 @@ export default function RecipeDetailsPage() {
           setFavorited(true);
           setFavoriteId(fav._id);
         }
-      })
-      .catch(() => {});
+      } catch {}
+    };
+    fetchFavorites();
   }, [user, recipe]);
 
   if (loading) {
