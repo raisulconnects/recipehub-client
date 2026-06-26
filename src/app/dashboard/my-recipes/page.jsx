@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Pencil, Trash2, Eye, Loader2 } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import { Button } from "@/components/ui/button";
 
@@ -32,7 +32,12 @@ export default function MyRecipesPage() {
   const handleDelete = async (id) => {
     if (!confirm("Delete this recipe?")) return;
     try {
-      await fetch(`/api/recipes/${id}`, { method: "DELETE" });
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token;
+      await fetch(`/api/recipes/${id}`, {
+        method: "DELETE",
+        headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+      });
       fetchRecipes();
     } catch {}
   };

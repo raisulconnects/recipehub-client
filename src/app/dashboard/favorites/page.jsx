@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Heart, Eye, Trash2, Loader2 } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import { Button } from "@/components/ui/button";
 
@@ -41,7 +41,12 @@ export default function FavoritesPage() {
 
   const handleRemove = async (recipeId) => {
     try {
-      await fetch(`/api/favorites/${recipeId}`, { method: "DELETE" });
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token;
+      await fetch(`/api/favorites/${recipeId}`, {
+        method: "DELETE",
+        headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+      });
       fetchFavorites();
     } catch {}
   };

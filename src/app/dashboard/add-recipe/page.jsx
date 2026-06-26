@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 import { Crown, Loader2, CheckCircle2, Upload, X } from "lucide-react";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import { Button } from "@/components/ui/button";
@@ -117,9 +117,15 @@ export default function AddRecipePage() {
     };
 
     try {
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token;
+
       const res = await fetch("/api/recipes", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
         body: JSON.stringify(payload),
       });
       const data = await res.json();

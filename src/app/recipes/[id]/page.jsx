@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 import {
   FaArrowLeft,
   FaClock,
@@ -116,8 +116,11 @@ export default function RecipeDetailsPage() {
     if (!user) return router.push("/login");
     setActionLoading(true);
     try {
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token;
       const data = await fetch(`/api/recipes/${recipe._id}/like`, {
         method: "PATCH",
+        headers: { ...(token && { Authorization: `Bearer ${token}` }) },
       }).then((r) => r.json());
       setLiked(data.liked);
       setLikesCount(data.likesCount);
@@ -129,14 +132,23 @@ export default function RecipeDetailsPage() {
     if (!user) return router.push("/login");
     setActionLoading(true);
     try {
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token;
+
       if (favorited && favoriteId) {
-        await fetch(`/api/favorites/${recipe._id}`, { method: "DELETE" });
+        await fetch(`/api/favorites/${recipe._id}`, {
+          method: "DELETE",
+          headers: { ...(token && { Authorization: `Bearer ${token}` }) },
+        });
         setFavorited(false);
         setFavoriteId(null);
       } else {
         const data = await fetch("/api/favorites", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
           body: JSON.stringify({ recipeId: recipe._id }),
         }).then((r) => r.json());
         setFavorited(true);
@@ -155,9 +167,15 @@ export default function RecipeDetailsPage() {
     if (!user) return router.push("/login");
     setActionLoading(true);
     try {
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token;
+
       await fetch("/api/reports", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
         body: JSON.stringify({ recipeId: recipe._id, reason: selectedReason, note: reportNote }),
       }).then((r) => r.json());
       setReportOpen(false);

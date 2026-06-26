@@ -1,14 +1,25 @@
+import { jwtClient } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
-const authClient = createAuthClient({
+export const authClient = createAuthClient({
   baseURL: "http://localhost:3000",
+  plugins: [jwtClient()],
 });
 
-const { signIn, signUp, useSession, updateUser, getSession } = authClient;
+const { signIn, signUp, useSession, updateUser, getSession, getToken } =
+  authClient;
 
 const signOut = async () => {
   await authClient.signOut();
   window.location.href = "/";
 };
 
-export { signIn, signUp, useSession, signOut, updateUser, getSession };
+export {
+  signIn,
+  signUp,
+  useSession,
+  signOut,
+  updateUser,
+  getSession,
+  getToken,
+};
