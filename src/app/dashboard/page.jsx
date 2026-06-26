@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Crown, Heart, ChefHat, ThumbsUp, Loader2 } from "lucide-react";
-import { useSession } from "@/lib/auth-client";
+import { useSession, authClient } from "@/lib/auth-client";
 import StatCard from "@/components/dashboard/StatCard";
 import SectionHeader from "@/components/dashboard/SectionHeader";
 import { Badge } from "@/components/ui/badge";
@@ -18,17 +18,23 @@ export default function DashboardOverviewPage() {
 
   useEffect(() => {
     if (!user?.email) return;
-    fetch("/api/users/stats")
-      .then((r) => r.json())
-      .then((data) => {
-        setStats({
-          recipes: data.totalRecipes || 0,
-          favorites: data.totalFavorites || 0,
-          likes: data.totalLikesReceived || 0,
-        });
-        setStatsLoading(false);
+    (async () => {
+      const { data: tokenData } = await authClient.token();
+      const token = tokenData?.token;
+      fetch("/api/users/stats", {
+        headers: { ...(token && { Authorization: `Bearer ${token}` }) },
       })
-      .catch(() => setStatsLoading(false));
+        .then((r) => r.json())
+        .then((data) => {
+          setStats({
+            recipes: data.totalRecipes || 0,
+            favorites: data.totalFavorites || 0,
+            likes: data.totalLikesReceived || 0,
+          });
+          setStatsLoading(false);
+        })
+        .catch(() => setStatsLoading(false));
+    })();
   }, [user?.email]);
 
   if (isPending) {
