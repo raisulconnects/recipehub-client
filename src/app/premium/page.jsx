@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import {
   Crown,
@@ -45,11 +46,18 @@ const compareItems = [
 ];
 
 export default function PremiumPage() {
+  const router = useRouter();
   const { data: session, isPending } = useSession();
   const user = session?.user;
   const isPremium = user?.isPremium || false;
   const userName = user?.name?.split(" ")[0] || "there";
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isPending && !user) {
+      router.replace("/login");
+    }
+  }, [isPending, user, router]);
 
   const handleCheckout = async () => {
     setCheckoutLoading(true);
@@ -69,6 +77,8 @@ export default function PremiumPage() {
       </div>
     );
   }
+
+  if (!user) return null;
 
   return (
     <section className="min-h-screen pt-24 pb-16">
