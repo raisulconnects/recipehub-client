@@ -30,6 +30,7 @@ import {
   LogOut,
   BookOpen,
   Home,
+  Crown,
 } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
 
@@ -280,6 +281,21 @@ function AuthenticatedMenu({ user }) {
           </Link>
         </DropdownMenuItem>
 
+        {!user.isPremium && (
+          <>
+            <DropdownMenuSeparator className="bg-white/20 dark:bg-white/10" />
+            <DropdownMenuItem
+              asChild
+              className="cursor-pointer hover:bg-white/50 dark:hover:bg-white/10"
+            >
+              <Link href="/premium" className="flex items-center gap-2">
+                <Crown className="w-4 h-4 text-amber-500" />
+                Premium
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
+
         {user.role === "admin" && (
           <>
             <DropdownMenuSeparator className="bg-white/20 dark:bg-white/10" />
@@ -397,6 +413,16 @@ function MobileMenu({ user, isActive, publicLinks }) {
                 <User className="w-4 h-4" /> Profile
               </Link>
             </SheetClose>
+            {!user.isPremium && (
+              <SheetClose asChild>
+                <Link
+                  href="/premium"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-white/5"
+                >
+                  <Crown className="w-4 h-4 text-amber-500" /> Premium
+                </Link>
+              </SheetClose>
+            )}
             <button
               onClick={() => signOut()}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
